@@ -88,6 +88,8 @@ def get_batch():
 
 # This function plots the results of the simulation
 def visualize(true_y, pred_y, odefunc, itr):
+    # Starting point largest coordinate
+    max_coord = torch.max(true_y0).item() # This works in this example because it is contractive
 
     if args.viz:
         ax_traj.cla()
@@ -99,7 +101,7 @@ def visualize(true_y, pred_y, odefunc, itr):
         ax_traj.plot(t.cpu().numpy(), pred_y.cpu().numpy()[:, 0, 0], 'y--', label="Predicted x")
         ax_traj.plot(t.cpu().numpy(), pred_y.cpu().numpy()[:, 0, 1], 'c--', label="Predicted y")
         ax_traj.set_xlim(t.cpu().min(), t.cpu().max())
-        ax_traj.set_ylim(-2, 2)
+        ax_traj.set_ylim(-max_coord, max_coord)
         ax_traj.legend()
 
         ax_phase.cla()
@@ -108,8 +110,8 @@ def visualize(true_y, pred_y, odefunc, itr):
         ax_phase.set_ylabel('y')
         ax_phase.plot(true_y.cpu().numpy()[:, 0, 0], true_y.cpu().numpy()[:, 0, 1], 'g-', label="True")
         ax_phase.plot(pred_y.cpu().numpy()[:, 0, 0], pred_y.cpu().numpy()[:, 0, 1], 'y--', label="Predicted")
-        ax_phase.set_xlim(-2, 2)
-        ax_phase.set_ylim(-2, 2)
+        ax_phase.set_xlim(-max_coord, max_coord)
+        ax_phase.set_ylim(-max_coord, max_coord)
         ax_phase.legend()
 
         ax_vecfield.cla()
@@ -117,30 +119,34 @@ def visualize(true_y, pred_y, odefunc, itr):
         ax_vecfield.set_xlabel('x')
         ax_vecfield.set_ylabel('y')
 
-        y, x = np.mgrid[-2:2:21j, -2:2:21j]
+        y, x = np.mgrid[-max_coord:max_coord:21j, -max_coord:max_coord:21j]
         dydt = odefunc(0, torch.Tensor(np.stack([x, y], -1).reshape(21 * 21, 2)).to(device)).cpu().detach().numpy()
         mag = np.sqrt(dydt[:, 0] ** 2 + dydt[:, 1] ** 2).reshape(-1, 1)
         dydt = (dydt / mag)  # el fa unitari
         dydt = dydt.reshape(21, 21, 2)
 
         ax_vecfield.streamplot(x, y, dydt[:, :, 0], dydt[:, :, 1], color="black")
-        ax_vecfield.set_xlim(-2, 2)
-        ax_vecfield.set_ylim(-2, 2)
+        ax_vecfield.set_xlim(-max_coord, max_coord)
+        ax_vecfield.set_ylim(-max_coord, max_coord)
 
         fig.tight_layout()
-        plt.savefig(args.dirname + '/{:03d}'.format(itr))
+        if itr == -1:
+            plt.savefig(args.dirname + '/generalisation')
+        else:
+            plt.savefig(args.dirname + '/{:03d}'.format(itr))
         plt.draw()
         plt.pause(0.001)
 
 
 def plot_learning_curve(losses):
-    plt.figure(figsize=(8, 6))
+    fig2 = plt.figure(figsize=(8, 6))
+    ax = fig2.add_subplot(111)
     time_intervals = list(range(0, args.niters, args.test_freq))
-    plt.plot(time_intervals, losses, marker='o', linestyle='-')
-    plt.title('Loss Over Time')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss')
-    plt.grid(True)
+    ax.plot(time_intervals, losses, marker='o', linestyle='-')
+    ax.set_title('Loss Over Time')
+    ax.set_xlabel('Iterations')
+    ax.set_ylabel('Loss')
+    ax.grid(True)
     plt.draw()
     plt.pause(2)
     plt.savefig(args.dirname + '/learning_curve')
@@ -179,22 +185,34 @@ if __name__ == '__main__':
     img_counter = 0
     losses = []
 
+    # Training loop
     for itr in range(1, args.niters + 1):
         optimizer.zero_grad()
         batch_y0, batch_t, batch_y = get_batch()
-        pred_y = odeint(func, batch_y0, batch_t, method=args.method).to(device) # Forward pass amb el batch, resolent IVP amb el model de la ODE-Net
-        loss = torch.mean(torch.abs(pred_y - batch_y))  # Calcula la loss
-        loss.backward() # Backward pass
+        pred_y = odeint(func, batch_y0, batch_t, method=args.method).to(device)
+        loss = torch.norm(pred_y - batch_y)
+        loss.backward()
         optimizer.step()
 
+        # Visualise training process
         if itr % args.test_freq == 0:
             with torch.no_grad():
                 pred_y = odeint(func, true_y0, t, method=args.method)
-                loss = torch.mean(torch.abs(pred_y - true_y))
+                loss = torch.norm(pred_y - true_y)
                 losses.append(loss.item())
                 print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
                 visualize(true_y, pred_y, func, img_counter)
                 img_counter += 1
 
+    """ Testing the generalization of the model"""
+    t = torch.linspace(0., 2 * args.terminal_time, 2*args.data_size).to(device)
+    with torch.no_grad():
+        true_y = odeint(lambda_func, true_y0, t, method=args.method)
+        pred_y = odeint(func, true_y0, t, method=args.method)
+        loss = torch.sum(torch.abs(pred_y - true_y))
+        print('Total difference between predicted and real {:.6f}'.format(loss.item()))
+        visualize(true_y, pred_y, func, -1)
+
+    """ Visualise the learning process """
     create_gif(args.dirname + '/linearODE.gif')
     plot_learning_curve(losses)
