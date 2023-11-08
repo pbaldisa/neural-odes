@@ -13,8 +13,8 @@ In this example, we will learn the dynamics of a linear ODE. The ODE is given by
 
 $$
 \begin{aligned}
-&\dot{x} = \begin{bmatrix} -0.1 & -3.0 \\ 3.0 & -0.1 \end{bmatrix} x \\
-&x(0) = \begin{bmatrix} 2.0 \\ 0.0 \end{bmatrix}
+&\dot{x} = \begin{bmatrix} -0.1 & -3.0 \\\ 3.0 & -0.1 \end{bmatrix} x \\
+&x(0) = \begin{bmatrix} 2.0 \\\ 0.0 \end{bmatrix}
 \end{aligned}
 $$
 
