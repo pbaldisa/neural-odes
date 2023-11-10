@@ -1,0 +1,5 @@
+matplotlib>=3.8.1
+numpy>=1.26.1
+torch>=2.1.0
+imageio>=2.32.0
+torchdiffeq>=0.2.3
