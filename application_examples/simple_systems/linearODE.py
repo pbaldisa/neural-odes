@@ -21,6 +21,7 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--adjoint', action='store_true')
 parser.add_argument('--terminal_time', type=float, default=25.)
 parser.add_argument('--dirname', type=str, default='linearODE_learningProcess')
+parser.add_argument('--lr', type=float, default=1e-4)
 args = parser.parse_args()
 
 """ Startup settings """
@@ -60,8 +61,10 @@ class ODEnn(nn.Module):
         super(ODEnn, self).__init__()
 
         self.net = nn.Sequential(
-            # ODE-Net's neural network architecture: 1 hidden layer with 50 neurons, tanh activation, 2 output neurons
+            # ODE-Net's neural network architecture: 2 hidden layer with 50 neurons, tanh activation, 2 output neurons
             nn.Linear(2, 50),
+            nn.Tanh(),
+            nn.Linear(50, 50),
             nn.Tanh(),
             nn.Linear(50, 2),
         )
@@ -176,11 +179,10 @@ if __name__ == '__main__':
     with torch.no_grad():
         true_y = odeint(lambda_func, true_y0, t, method=args.method)
 
-
     """ Define the Neural Network to learn the vector field """
     func = ODEnn().to(device)
 
-    optimizer = optim.RMSprop(func.parameters(), lr=1e-3)
+    optimizer = optim.RMSprop(func.parameters(), lr=args.lr)
 
     img_counter = 0
     losses = []
