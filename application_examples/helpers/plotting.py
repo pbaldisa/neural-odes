@@ -49,7 +49,9 @@ def plot_ode(y, odefunc):
     fig.clear()
 
 
-def plot_linearODE_result(true_y, pred_y, t, odefunc, losses = [], test_freq = 0):
+def plot_linearODE_result(true_y, pred_y, t, odefunc, losses=None, test_freq=0):
+    if losses is None:
+        losses = []
     max_coord = torch.max(true_y).item() # This works in this example because it is contractive
 
     if len(losses) == 0:
@@ -67,10 +69,10 @@ def plot_linearODE_result(true_y, pred_y, t, odefunc, losses = [], test_freq = 0
     ax_traj.set_title('Trajectories')
     ax_traj.set_xlabel('t')
     ax_traj.set_ylabel('x,y')
-    ax_traj.plot(t.numpy(), true_y.numpy()[:, 0, 0], 'g-', label="True x")
-    ax_traj.plot(t.numpy(), true_y.numpy()[:, 0, 1], 'b-', label="True y")
-    ax_traj.plot(t.numpy(), pred_y.detach().numpy()[:, 0, 0], 'y--', label="Predicted x")
-    ax_traj.plot(t.numpy(), pred_y.detach().numpy()[:, 0, 1], 'c--', label="Predicted y")
+    ax_traj.plot(t.cpu().numpy(), true_y.cpu().numpy()[:, 0, 0], 'g-', label="True x")
+    ax_traj.plot(t.cpu().numpy(), true_y.cpu().numpy()[:, 0, 1], 'b-', label="True y")
+    ax_traj.plot(t.cpu().numpy(), pred_y.cpu().detach().numpy()[:, 0, 0], 'y--', label="Predicted x")
+    ax_traj.plot(t.cpu().numpy(), pred_y.cpu().detach().numpy()[:, 0, 1], 'c--', label="Predicted y")
     ax_traj.set_xlim(t.min(), t.max())
     ax_traj.set_ylim(-max_coord, max_coord)
     ax_traj.legend()
@@ -78,8 +80,8 @@ def plot_linearODE_result(true_y, pred_y, t, odefunc, losses = [], test_freq = 0
     ax_phase.set_title('Phase Portrait')
     ax_phase.set_xlabel('x')
     ax_phase.set_ylabel('y')
-    ax_phase.plot(true_y.detach().numpy()[:, 0, 0], true_y.detach().numpy()[:, 0, 1], 'g-', label="True")
-    ax_phase.plot(pred_y.detach().numpy()[:, 0, 0], pred_y.detach().numpy()[:, 0, 1], 'y--', label="Predicted")
+    ax_phase.plot(true_y.cpu().detach().numpy()[:, 0, 0], true_y.cpu().detach().numpy()[:, 0, 1], 'g-', label="True")
+    ax_phase.plot(pred_y.cpu().detach().numpy()[:, 0, 0], pred_y.cpu().detach().numpy()[:, 0, 1], 'y--', label="Predicted")
     ax_phase.set_xlim(-max_coord, max_coord)
     ax_phase.set_ylim(-max_coord, max_coord)
     ax_phase.legend()
@@ -89,7 +91,7 @@ def plot_linearODE_result(true_y, pred_y, t, odefunc, losses = [], test_freq = 0
     ax_vecfield.set_ylabel('y')
 
     y, x = np.mgrid[-max_coord:max_coord:21j, -max_coord:max_coord:21j]
-    dydt = odefunc(0, torch.Tensor(np.stack([x, y], -1).reshape(21 * 21, 2))).detach().numpy()
+    dydt = odefunc(0, torch.Tensor(np.stack([x, y], -1).reshape(21 * 21, 2))).cpu().detach().numpy()
     mag = np.sqrt(dydt[:, 0] ** 2 + dydt[:, 1] ** 2).reshape(-1, 1)
     dydt = (dydt / mag)  # el fa unitari
     dydt = dydt.reshape(21, 21, 2)
