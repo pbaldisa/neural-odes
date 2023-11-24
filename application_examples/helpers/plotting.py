@@ -33,7 +33,7 @@ def plot_ode(y, odefunc):
 
     ax_vecfield.set_title("Vector field")
     y, x = np.mgrid[-max_coord:max_coord:21j, -max_coord:max_coord:21j]
-    dydt = odefunc(0, torch.Tensor(np.stack([x, y], -1).reshape(21 * 21, 2))).detach().numpy()
+    dydt = odefunc(0, torch.Tensor(np.stack([x, y], -1).reshape(21 * 21, 2))).cpu().detach().numpy()
     norm = np.sqrt(dydt[:, 0] ** 2 + dydt[:, 1] ** 2).reshape(-1, 1)
     zero_magnitude_rows = np.where(norm == 0)[0]
     norm[zero_magnitude_rows] = 1.0
