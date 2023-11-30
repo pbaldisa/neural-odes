@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 
 
 def import_solver(adjoint):
@@ -64,6 +65,36 @@ def train_model(model, optimiser, true_y0, true_y, t, args):
     print('Final Loss {:.6f}'.format(loss.item()))
 
     return losses
+
+class RunningAverageMeter(object):
+    """Computes and stores the average and current value"""
+
+    def __init__(self, momentum=0.99):
+        self.momentum = momentum
+        self.reset()
+
+    def reset(self):
+        self.val = None
+        self.avg = 0
+        self.history = []
+
+    def update(self, val):
+        if self.val is None:
+            self.avg = val
+        else:
+            self.avg = self.avg * self.momentum + val * (1 - self.momentum)
+        self.val = val
+        self.history.append(val)
+
+    def plot_history(self):
+        # Display learning curve
+        plt.figure(figsize=(8, 5))
+        plt.plot(self.history, label='Training Loss')
+        plt.xlabel('Timestep')
+        plt.ylabel('Loss')
+        plt.title('Learning Curve')
+        plt.legend()
+        plt.show()
 
 
 '''
