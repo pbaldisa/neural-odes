@@ -66,6 +66,7 @@ def train_model(model, optimiser, true_y0, true_y, t, args):
 
     return losses
 
+
 class RunningAverageMeter(object):
     """Computes and stores the average and current value"""
 
