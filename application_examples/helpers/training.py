@@ -19,8 +19,8 @@ def get_batch(true_y, t, batch_time, data_size, batch_size):
     return batch_y0, batch_t, batch_y
 
 
-def train_model(model, optimiser, true_y0, true_y, t, args):
-    odeint = import_solver(args.get('adjoint', False))
+def train_model(model, optimiser, true_y0, true_y, t, args, adjoint=False):
+    odeint = import_solver(adjoint)
 
     losses = []
     niters = args.get('niters', 25000)
