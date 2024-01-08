@@ -22,7 +22,7 @@ def get_batch(true_y, t, batch_time, data_size, batch_size):
 def train_model(model, optimiser, true_y0, true_y, t, args, adjoint=False):
     odeint = import_solver(adjoint)
 
-    losses = []
+    loss_meter = RunningAverageMeter(0.97)
     niters = args.get('niters', 25000)
     verbose = args.get('verbose', True)
     method = args.get('method', 'dopri5')
@@ -34,7 +34,7 @@ def train_model(model, optimiser, true_y0, true_y, t, args, adjoint=False):
     with torch.no_grad():
         pred_y = odeint(model, true_y0, t, method=method)
         loss = loss_fn(pred_y, true_y)
-        losses.append(loss.item())
+        loss_meter.update(loss.item())
         if verbose:
             print('Iter {:04d} | Total Loss {:.6f}'.format(0, loss.item()))
         prev_loss = loss.item()
@@ -52,7 +52,7 @@ def train_model(model, optimiser, true_y0, true_y, t, args, adjoint=False):
             with torch.no_grad():
                 pred_y = odeint(model, true_y0, t, method=method)
                 loss = loss_fn(pred_y, true_y)
-                losses.append(loss.item())
+                loss_meter.update(loss.item())
                 if verbose:
                     print('Iter {:04d} | Total Loss {:.6f}'.format(itr, loss.item()))
                 if abs(loss.item() - prev_loss) < eps and loss.item() < tol:
@@ -61,10 +61,10 @@ def train_model(model, optimiser, true_y0, true_y, t, args, adjoint=False):
 
     pred_y = odeint(model, true_y0, t, method=method)
     loss = loss_fn(pred_y, true_y)
-    losses.append(loss.item())
+    loss_meter.update(loss.item())
     print('Final Loss {:.6f}'.format(loss.item()))
 
-    return losses
+    return loss_meter.get_history()
 
 
 class RunningAverageMeter(object):
@@ -96,6 +96,9 @@ class RunningAverageMeter(object):
         plt.title('Learning Curve')
         plt.legend()
         plt.show()
+
+    def get_history(self):
+        return self.history
 
 
 '''
