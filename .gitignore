@@ -1,5 +1,5 @@
 # Images
-application_examples/simple_systems/linearODE_learningProcess/[0-9]*.png
+experiments/neural_odes/linear_ode/linearODE_learningProcess/[0-9]*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
