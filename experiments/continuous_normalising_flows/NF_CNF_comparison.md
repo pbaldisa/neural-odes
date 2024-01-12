@@ -8,7 +8,7 @@ their performances on two simple toy datasets. The experiments can be found in t
 |                                | NF      | CNF         |
 |--------------------------------|---------|-------------|
 | Number of trainable parameters | 804888  | **15904**   |
-| Negative log-likelihood        | -1.1982 | **-1.2455** |
+| Negative log-likelihood        | -1.2070 | **-1.2433** |
 
 From the numbers it is clear the CNF is much more effective in terms of the number of parameters needed
 to achieve a similar performance. Even then, the performance of CNF is slightly better than that of the NF.
@@ -39,7 +39,7 @@ density better using fewer parameters.
 |                                | NF      | CNF        |
 |--------------------------------|---------|------------|
 | Number of trainable parameters | 7404600 | **15904**  |
-| Negative log-likelihood        | 0.9079  | **0.8128** |
+| Negative log-likelihood        | 1.0158  | **0.8107** |
 
 Once again, the CNF is much more effective in terms of the number of parameters needed. In this case, to
 achieve a similar performance, the NF needs 46.8 times more parameters than the CNF. Even then,

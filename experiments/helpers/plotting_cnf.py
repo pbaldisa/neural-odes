@@ -74,7 +74,7 @@ def plot_flow(get_batch, results_dir, odeint, func, p_z0, t0, t1, device):
             axes[1].hist2d(*z_sample.detach().cpu().numpy().T, bins=300, density=True, range=[[-1.5, 1.5], [-1.5, 1.5]])
 
             logp = p_z0.log_prob(z_density) - logp_diff.view(-1)
-            axes[2].set_title('Log Probability')
+            axes[2].set_title('Probability')
             axes[2].tricontourf(*z_t1.detach().cpu().numpy().T, np.exp(logp.detach().cpu().numpy()), 200)
 
             plt.savefig(os.path.join(results_dir, f"cnf-viz-{int(t * 1000):05d}.jpg"),
@@ -83,5 +83,5 @@ def plot_flow(get_batch, results_dir, odeint, func, p_z0, t0, t1, device):
 
         # Display GIF
         # Get a list of all the images in the results directory
-        gif_images = [os.path.join(results_dir, f) for f in os.listdir(results_dir) if f.endswith('.jpg')]
+        gif_images = [os.path.join(results_dir, f) for f in sorted(os.listdir(results_dir)) if f.endswith('.jpg')]
         show_gif(gif_images, results_dir)

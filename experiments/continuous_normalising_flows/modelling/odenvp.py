@@ -16,7 +16,6 @@ class ODENVP(nn.Module):
     Args:
         input_size (tuple): 4D tuple of the input size.
         n_scale (int): Number of scales for the representation z.
-        n_resblocks (int): Length of the resnet for each coupling layer.
     """
 
     def __init__(
